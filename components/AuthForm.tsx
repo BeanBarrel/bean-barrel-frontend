@@ -1,43 +1,90 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { login } from "@/lib/auth";
+import { Form, Input, Button, Card, Typography } from "antd";
+import { Snackbar, Alert } from "@mui/material";
+
+const { Title } = Typography;
 
 export default function AuthForm() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error";
+  }>({ open: false, message: "", severity: "success" });
+
+  async function handleSubmit(values: { username: string; password: string }) {
+    setLoading(true);
     try {
-      const user = await login(username, password);
-      console.log("Logged in:", user);
-      // redirect to dashboard
-      window.location.href = "/dashboard";
+      await login(values.username, values.password);
+      setSnackbar({ open: true, message: "Logged in successfully", severity: "success" });
+      router.push("/dashboard");
     } catch (err) {
-      alert("Invalid credentials");
+      setSnackbar({ open: true, message: "Invalid credentials", severity: "error" });
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-white shadow rounded-lg space-y-4">
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="w-full border p-2 rounded"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full border p-2 rounded"
-      />
-      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
-        Login
-      </button>
-    </form>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      <Card className="w-full max-w-md shadow-lg rounded-xl">
+        <div className="text-center mb-6">
+          <Title level={3}>Welcome Back</Title>
+          <p className="text-gray-500">Please log in to continue</p>
+        </div>
+
+        <Form layout="vertical" onFinish={handleSubmit}>
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Please enter your username" }]}
+          >
+            <Input placeholder="Enter your username" />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Please enter your password" }]}
+          >
+            <Input.Password placeholder="Enter your password" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={loading}
+              className="rounded-md"
+            >
+              Login
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+
+      {/* MUI Snackbar for alerts */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </div>
   );
 }

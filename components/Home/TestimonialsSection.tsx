@@ -6,20 +6,20 @@ import { useEffect, useState } from "react";
 export default function TestimonialsSection() {
   const testimonials = [
     {
-      name: "Sophie R.",
-      text: "Incredible experience. The food, the wine, the ambiance—just perfect.",
+      name: "Rojin Philip",
+      text: "Cozy coffee shop with perfect rainy-day vibes. (Also have a lot of places to sit around) The coffee is strong enough to power an all nighter, especially recommend butterscotch latte.",
       rating: 5,
       date: "May 2025",
     },
     {
-      name: "Jean-Paul D.",
-      text: "The best steak frites I’ve had in years. Highly recommend!",
-      rating: 4,
+      name: "Nandu Lal",
+      text: "Awesome service, nice coffee, butter scotch cookies and brownies, nice ambiance and vibe, good parking space",
+      rating: 5,
       date: "April 2025",
     },
     {
-      name: "Maria K.",
-      text: "Lovely service and authentic French dishes. A hidden gem.",
+      name: "Maya Prakash",
+      text: "I had a cappuccino, and it was incredible! The coffee had a perfect balance of boldness and smoothness, with a subtle nutty flavour that lingered nicely.",
       rating: 5,
       date: "March 2025",
     },
