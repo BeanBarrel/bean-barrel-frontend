@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "framer-motion": "^12.14.0",
+    "lucide-react": "^0.511.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "next": "15.5.3",
+     "react-scroll": "^1.9.3"
   },
   "devDependencies": {
     "typescript": "^5",
