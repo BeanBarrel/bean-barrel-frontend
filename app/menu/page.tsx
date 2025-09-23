@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Layout from "@/app/dashboard/layout";
+import Layout from "@/components/DashboardSidebar";
 import { Typography, Spin, Modal, Input, Form, Button, message, Table, Card } from "antd";
 import { fetchWithAuth } from "@/lib/auth";
 
@@ -25,8 +25,7 @@ export default function MenuPage() {
     const [loading, setLoading] = useState(true);
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const [deleteItem, setDeleteItem] = useState<MenuItem | null>(null);
-    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+   
 
     const [form] = Form.useForm();
 
@@ -115,7 +114,7 @@ export default function MenuPage() {
         {
             title: "Action",
             key: "action",
-            render: (_: any, record: MenuItem) => (
+            render: (_: unknown, record: MenuItem) => (
                 <div style={{ display: "flex", gap: "8px" }}>
                     <Button type="primary" onClick={() => handleEdit(record)}>
                         Edit

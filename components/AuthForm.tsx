@@ -24,8 +24,8 @@ export default function AuthForm() {
       await login(values.username, values.password);
       setSnackbar({ open: true, message: "Logged in successfully", severity: "success" });
       router.push("/dashboard");
-    } catch (err) {
-      setSnackbar({ open: true, message: "Invalid credentials", severity: "error" });
+    } catch (e) {
+      setSnackbar({ open: true, message: "Invalid credentials"+e, severity: "error" });
     } finally {
       setLoading(false);
     }

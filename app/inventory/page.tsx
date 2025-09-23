@@ -1,4 +1,4 @@
-import Layout from "@/app/dashboard/layout";
+import Layout from "@/components/DashboardSidebar";
 import { Typography, Paper } from "@mui/material";
 
 export default function InventoryPage() {

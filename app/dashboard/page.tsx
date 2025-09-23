@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Layout from "@/app/dashboard/layout";
+import Layout from "@/components/DashboardSidebar";
 import {
   PieChart,
   Pie,
