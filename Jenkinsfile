@@ -1,28 +1,39 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "beanbarrel-frontend"
+        IMAGE_TAG = "latest"
+    }
+
     stages {
-        stage('Stage 1: Start') {
+        stage('Checkout') {
             steps {
-                echo 'Pipeline started 🚀'
+                checkout scm
             }
         }
 
-        stage('Stage 2: Hello') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Hello 👋'
+                script {
+                    echo "Building Docker image..."
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
             }
         }
 
-        stage('Stage 3: World') {
+        stage('Run Docker Container (Optional)') {
             steps {
-                echo 'World 🌍'
+                script {
+                    echo "Running Docker container..."
+                    sh "docker run -d -p 3000:3000 --name beanbarrel_frontend ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
             }
         }
 
-        stage('Stage 4: Done') {
+        stage('Done') {
             steps {
-                echo 'Pipeline finished ✅'
+                echo "Pipeline completed ✅"
             }
         }
     }
