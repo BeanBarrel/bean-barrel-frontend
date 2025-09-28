@@ -20,7 +20,9 @@ pipeline {
         }
 
         stage('Clean Old Docker Containers & Images') {
-            when { branch 'dev' }
+            when { 
+                expression { env.BRANCH_NAME == 'dev' }
+            }
             steps {
                 script {
                     echo "Cleaning up old containers and images..."
@@ -40,17 +42,19 @@ pipeline {
                         fi
                     """
 
-                    // Remove all stopped containers (optional, keeps things clean)
+                    // Remove all stopped containers (optional)
                     sh "docker container prune -f"
 
-                    // Remove dangling imagesdcds (optional)
+                    // Remove dangling images (optional)
                     sh "docker image prune -f"
                 }
             }
         }
 
         stage('Build Docker Image') {
-            when { branch 'dev' }
+            when { 
+                expression { env.BRANCH_NAME == 'dev' }
+            }
             steps {
                 script {
                     echo "Building Docker image..."
@@ -60,7 +64,9 @@ pipeline {
         }
 
         stage('Run Docker Container') {
-            when { branch 'dev' }
+            when { 
+                expression { env.BRANCH_NAME == 'dev' }
+            }
             steps {
                 script {
                     echo "Running Docker container..."
