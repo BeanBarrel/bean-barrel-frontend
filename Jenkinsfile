@@ -7,11 +7,6 @@ pipeline {
         CONTAINER_NAME = "beanbarrel_frontend"
     }
 
-    triggers {
-        // Poll SCM every 2 minutes
-        pollSCM('H/2 * * * *')
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -20,9 +15,6 @@ pipeline {
         }
 
         stage('Clean Old Docker Containers & Images') {
-            when { 
-                expression { env.BRANCH_NAME == 'dev' }
-            }
             steps {
                 script {
                     echo "Cleaning up old containers and images..."
@@ -42,19 +34,16 @@ pipeline {
                         fi
                     """
 
-                    // Remove all stopped containers (optional)
+                    // Optional: Remove all stopped containers
                     sh "docker container prune -f"
 
-                    // Remove dangling images (optional)
+                    // Optional: Remove dangling images
                     sh "docker image prune -f"
                 }
             }
         }
 
         stage('Build Docker Image') {
-            when { 
-                expression { env.BRANCH_NAME == 'dev' }
-            }
             steps {
                 script {
                     echo "Building Docker image..."
@@ -64,9 +53,6 @@ pipeline {
         }
 
         stage('Run Docker Container') {
-            when { 
-                expression { env.BRANCH_NAME == 'dev' }
-            }
             steps {
                 script {
                     echo "Running Docker container..."
