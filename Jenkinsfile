@@ -43,7 +43,7 @@ pipeline {
                     // Remove all stopped containers (optional, keeps things clean)
                     sh "docker container prune -f"
 
-                    // Remove dangling images (optional)
+                    // Remove dangling imagesdcds (optional)
                     sh "docker image prune -f"
                 }
             }
