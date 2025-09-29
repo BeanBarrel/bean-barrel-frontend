@@ -14,10 +14,10 @@ pipeline {
             }
         }
 
-        stage('Clean Old Docker Containers & Images') {
+        stage('Clean Docker Environment') {
             steps {
                 script {
-                    echo "Cleaning up old containers and images..."
+                    echo "Cleaning up old containers, images, and Docker cache..."
 
                     // Stop & remove the running container if it exists
                     sh """
@@ -34,11 +34,14 @@ pipeline {
                         fi
                     """
 
-                    // Optional: Remove all stopped containers
+                    // Remove all stopped containers
                     sh "docker container prune -f"
 
-                    // Optional: Remove dangling images
+                    // Remove dangling images
                     sh "docker image prune -f"
+
+                    // Clear build cache
+                    sh "docker builder prune -f"
                 }
             }
         }
@@ -47,34 +50,34 @@ pipeline {
             steps {
                 script {
                     echo "Building Docker image..."
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    sh "docker build --no-cache -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
 
-       stage('Run Docker Container') {
-    steps {
-        script {
-            echo "Running Docker container..."
-            
-            // Set API URL based on branch
-            def apiUrl = ''
-            if (env.BRANCH_NAME == 'dev') {
-                apiUrl = 'http://10.0.0.37:9091/'
-            } else {
-                apiUrl = 'https://api.beanbarrel.com/api'
-            }
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    echo "Running Docker container..."
 
-            sh """
-                docker run -d \
-                -p 3000:3000 \
-                --name ${CONTAINER_NAME} \
-                -e NEXT_PUBLIC_API_URL=${apiUrl} \
-                ${IMAGE_NAME}:${IMAGE_TAG}
-            """
+                    // Set API URL based on branch
+                    def apiUrl = ''
+                    if (env.BRANCH_NAME == 'dev') {
+                        apiUrl = 'http://10.0.0.37:9091/'
+                    } else {
+                        apiUrl = 'https://api.beanbarrel.com/api'
+                    }
+
+                    sh """
+                        docker run -d \
+                        -p 3000:3000 \
+                        --name ${CONTAINER_NAME} \
+                        -e NEXT_PUBLIC_API_URL=${apiUrl} \
+                        ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
         }
-    }
-}
 
         stage('Done') {
             steps {
