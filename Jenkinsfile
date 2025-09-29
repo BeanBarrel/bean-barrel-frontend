@@ -52,14 +52,29 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    echo "Running Docker container..."
-                    sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${IMAGE_NAME}:${IMAGE_TAG}"
-                }
+       stage('Run Docker Container') {
+    steps {
+        script {
+            echo "Running Docker container..."
+            
+            // Set API URL based on branch
+            def apiUrl = ''
+            if (env.BRANCH_NAME == 'dev') {
+                apiUrl = 'http://10.0.0.37:9091/'
+            } else {
+                apiUrl = 'https://api.beanbarrel.com/api'
             }
+
+            sh """
+                docker run -d \
+                -p 3000:3000 \
+                --name ${CONTAINER_NAME} \
+                -e NEXT_PUBLIC_API_URL=${apiUrl} \
+                ${IMAGE_NAME}:${IMAGE_TAG}
+            """
         }
+    }
+}
 
         stage('Done') {
             steps {
