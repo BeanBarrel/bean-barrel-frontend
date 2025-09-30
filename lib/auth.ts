@@ -6,9 +6,9 @@ const AUTH_KEY = "auth"; // localStorage key
 // Login function
 export async function login(username: string, password: string) {
   const credentials = btoa(`${username}:${password}`); // base64 encode
-console.log("Tesing testing:", API_BASE_URL);
+
   // Test login by calling a protected endpoint
-  const res = await fetch(`api/secure/hello`, {
+  const res = await fetch(`${API_BASE_URL}api/secure/hello`, {
     headers: {
       "Authorization": `Basic ${credentials}`,
     },

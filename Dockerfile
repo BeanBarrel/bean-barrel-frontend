@@ -1,6 +1,10 @@
 # ---------- STAGE 1: Build ----------
 FROM node:18-alpine AS builder
 
+# Accept runtime API URL
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Set working directory
 WORKDIR /app
 
@@ -25,11 +29,9 @@ COPY --from=builder /app/package*.json ./
 # Install only production dependencies
 RUN npm install --only=production
 
-# Copy the build output and public folder
+# Copy build output and public folder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-
-
 
 # Expose port
 EXPOSE 3000
