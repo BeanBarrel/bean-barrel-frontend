@@ -20,8 +20,36 @@ import { fetchWithAuth } from "@/lib/auth";
 const { Title } = Typography;
 const { Option } = Select;
 
+// ---------------- Types ----------------
+interface Item {
+  id: number;
+  quantity: number;
+  item: {
+    itemId: number;
+    itemName: string;
+    itemDescription: string;
+    itemPrice: number;
+  };
+}
+
+interface Sale {
+  id: number;
+  billNumber: number;
+  tokenNumber: number;
+  status: number;
+  store: number;
+  totalAmount: number;
+  dateTime: string;
+  paymentMethod: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  items: Item[];
+}
+
+// ---------------- Component ----------------
 export default function SalesPage() {
-  const [sales, setSales] = useState([]);
+  const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [page, setPage] = useState(0);
@@ -50,6 +78,7 @@ export default function SalesPage() {
     loadSales();
   }, [date, page, store]);
 
+  // ---------------- Table Columns ----------------
   const columns = [
     {
       title: "Bill #",
@@ -83,19 +112,20 @@ export default function SalesPage() {
       key: "totalAmount",
       render: (val: number) => `₹${val}`,
     },
-  {
-  title: "Date/Time",
-  dataIndex: "dateTime",
-  key: "dateTime",
-  render: (value: string) => dayjs(value).format("MMMM DD, YYYY hh:mm A"), 
-  // Example: September 18, 2025 02:43 AM
-},
+    {
+      title: "Date/Time",
+      dataIndex: "dateTime",
+      key: "dateTime",
+      render: (value: string) =>
+        dayjs(value).format("MMMM DD, YYYY hh:mm A"),
+    },
   ];
 
   return (
     <Layout pageTitle="Sales">
       <Title level={3}>Sales Dashboard</Title>
 
+      {/* Filters */}
       <Card style={{ marginBottom: 16 }}>
         <Row gutter={16} align="middle">
           <Col>
@@ -103,7 +133,9 @@ export default function SalesPage() {
               value={dayjs(date)}
               onChange={(d) => {
                 setPage(0);
-                setDate(d ? d.format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD"));
+                setDate(
+                  d ? d.format("YYYY-MM-DD") : dayjs().format("YYYY-MM-DD")
+                );
               }}
             />
           </Col>
@@ -124,6 +156,7 @@ export default function SalesPage() {
         </Row>
       </Card>
 
+      {/* Sales Table */}
       <Card>
         {loading ? (
           <Spin />
@@ -134,7 +167,48 @@ export default function SalesPage() {
               columns={columns}
               rowKey="id"
               pagination={false}
+              expandable={{
+                expandedRowRender: (record: Sale) => (
+                  <Table
+                    dataSource={record.items}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                    columns={[
+                      {
+                        title: "Item Name",
+                        dataIndex: ["item", "itemName"],
+                        key: "itemName",
+                      },
+                      {
+                        title: "Description",
+                        dataIndex: ["item", "itemDescription"],
+                        key: "itemDescription",
+                      },
+                      {
+                        title: "Price",
+                        dataIndex: ["item", "itemPrice"],
+                        key: "itemPrice",
+                        render: (val: number) => `₹${val}`,
+                      },
+                      {
+                        title: "Quantity",
+                        dataIndex: "quantity",
+                        key: "quantity",
+                      },
+                      {
+                        title: "Total",
+                        key: "total",
+                        render: (item: Item) =>
+                          `₹${item.quantity * item.item.itemPrice}`,
+                      },
+                    ]}
+                  />
+                ),
+              }}
             />
+
+            {/* Pagination */}
             <Pagination
               style={{ marginTop: 16, textAlign: "right" }}
               current={page + 1}
