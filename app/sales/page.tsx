@@ -81,13 +81,15 @@ export default function SalesPage() {
       title: "Total",
       dataIndex: "totalAmount",
       key: "totalAmount",
-      render: (val: number) => `$${val}`,
+      render: (val: number) => `₹${val}`,
     },
-    {
-      title: "Date/Time",
-      dataIndex: "dateTime",
-      key: "dateTime",
-    },
+  {
+  title: "Date/Time",
+  dataIndex: "dateTime",
+  key: "dateTime",
+  render: (value: string) => dayjs(value).format("MMMM DD, YYYY hh:mm A"), 
+  // Example: September 18, 2025 02:43 AM
+},
   ];
 
   return (
