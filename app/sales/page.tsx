@@ -78,6 +78,11 @@ export default function SalesPage() {
     loadSales();
   }, [date, page, store]);
 
+  // Calculate total sales excluding cancelled orders
+  const totalSalesAmount = sales
+    .filter((s) => s.status !== 1)
+    .reduce((sum, s) => sum + s.totalAmount, 0);
+
   // ---------------- Table Columns ----------------
   const columns = [
     {
@@ -125,6 +130,11 @@ export default function SalesPage() {
     <Layout pageTitle="Sales">
       <Title level={3}>Sales Dashboard</Title>
 
+      {/* Total Sales Summary */}
+      <Card style={{ marginBottom: 16, background: "#f6ffed" }}>
+        <Title level={4}>Total Sales: ₹{totalSalesAmount.toFixed(2)}</Title>
+      </Card>
+
       {/* Filters */}
       <Card style={{ marginBottom: 16 }}>
         <Row gutter={16} align="middle">
@@ -167,6 +177,9 @@ export default function SalesPage() {
               columns={columns}
               rowKey="id"
               pagination={false}
+              rowClassName={(record: Sale) =>
+                record.status === 1 ? "cancelled-row" : ""
+              }
               expandable={{
                 expandedRowRender: (record: Sale) => (
                   <Table
@@ -219,6 +232,13 @@ export default function SalesPage() {
           </>
         )}
       </Card>
+
+      {/* Add CSS for cancelled rows */}
+      <style>{`
+        .cancelled-row {
+          background-color: #ffcccc !important;
+        }
+      `}</style>
     </Layout>
   );
 }
