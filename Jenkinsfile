@@ -46,7 +46,7 @@ pipeline {
                     if (env.BRANCH_NAME == 'dev') {
                         apiUrl = 'http://10.0.0.37:9091/'
                     } else {
-                        apiUrl = 'https://147.93.43.194:9091/api/'
+                        apiUrl = 'http://147.93.43.194:9091/api/'
                     }
 
                     echo "Building Docker image with API URL: ${apiUrl}"
@@ -67,7 +67,7 @@ pipeline {
                     if (env.BRANCH_NAME == 'dev') {
                         apiUrl = 'http://10.0.0.37:9091/'
                     } else {
-                        apiUrl = 'https://147.93.43.194:9091/api/'
+                        apiUrl = 'http://147.93.43.194:9091/api/'
                     }
 
                     echo "Running container with API URL: ${apiUrl}"
