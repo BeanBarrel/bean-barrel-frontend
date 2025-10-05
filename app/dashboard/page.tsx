@@ -46,7 +46,7 @@ export default function DashboardPage() {
         const start = `${startDate}T00:00:00`;
         const end = `${endDate}T23:59:59`;
         const res = await fetchWithAuth(
-          `/api/dashboard?startDate=${start}&endDate=${end}&storeId=${storeId}`
+          `api/dashboard?startDate=${start}&endDate=${end}&storeId=${storeId}`
         );
         setData(res);
       } catch (err) {
