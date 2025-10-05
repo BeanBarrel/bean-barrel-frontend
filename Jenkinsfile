@@ -14,12 +14,11 @@ pipeline {
             }
         }
 
-        stage('Clean Old Docker Containers & Images') {
+        stage('Clean Docker Environment') {
             steps {
                 script {
-                    echo "Cleaning up old containers and images..."
+                    echo "Cleaning old containers, images, and cache..."
 
-                    // Stop & remove the running container if it exists
                     sh """
                         if [ \$(docker ps -aq -f name=${CONTAINER_NAME}) ]; then
                             docker stop ${CONTAINER_NAME} || true
@@ -27,18 +26,15 @@ pipeline {
                         fi
                     """
 
-                    // Remove old image if it exists
                     sh """
                         if [ \$(docker images -q ${IMAGE_NAME}:${IMAGE_TAG}) ]; then
                             docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
                         fi
                     """
 
-                    // Optional: Remove all stopped containers
                     sh "docker container prune -f"
-
-                    // Optional: Remove dangling images
                     sh "docker image prune -f"
+                    sh "docker builder prune -f"
                 }
             }
         }
@@ -46,8 +42,20 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building Docker image..."
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    def apiUrl = ''
+                    if (env.BRANCH_NAME == 'dev') {
+                        apiUrl = 'http://10.0.0.37:9091/'
+                    } else {
+                        apiUrl = 'https://api.beanbarrel.com/api'
+                    }
+
+                    echo "Building Docker image with API URL: ${apiUrl}"
+
+                    sh """
+                        docker build --no-cache \
+                        --build-arg NEXT_PUBLIC_API_URL=${apiUrl} \
+                        -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    """
                 }
             }
         }
@@ -55,15 +63,29 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    echo "Running Docker container..."
-                    sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${IMAGE_NAME}:${IMAGE_TAG}"
+                    def apiUrl = ''
+                    if (env.BRANCH_NAME == 'dev') {
+                        apiUrl = 'http://10.0.0.37:9091/'
+                    } else {
+                        apiUrl = 'https://api.beanbarrel.com/api'
+                    }
+
+                    echo "Running container with API URL: ${apiUrl}"
+
+                    sh """
+                        docker run -d \
+                        -p 3000:3000 \
+                        --name ${CONTAINER_NAME} \
+                        -e NEXT_PUBLIC_API_URL=${apiUrl} \
+                        ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
                 }
             }
         }
 
         stage('Done') {
             steps {
-                echo "Pipeline finished ✅"
+                echo "✅ Pipeline complete"
             }
         }
     }

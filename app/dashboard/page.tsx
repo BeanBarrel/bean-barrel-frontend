@@ -14,6 +14,8 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
+  LineChart,
+  Line,
 } from "recharts";
 import { fetchWithAuth } from "@/lib/auth";
 
@@ -22,23 +24,31 @@ interface DashboardData {
   totalRevenue: number;
   salesByPaymentMethod: Record<string, number>;
   salesByStatus: Record<string, number>;
-  monthlySales: { month: string; salesCount: number; revenue: number }[];
-  storeSales: Record<string, number>;
+  hourlySales: Record<string, number>;
 }
 
 const COLORS = ["#6366F1", "#10B981", "#FACC15", "#F97316", "#00C49F"];
-const STATUS_COLORS = [ "#007200","#c1121f"]; 
-// ... keep imports, fetchWithAuth, DashboardData, COLORS the same
+const STATUS_COLORS = ["#007200", "#c1121f"];
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const [storeId, setStoreId] = useState("0"); // Default Ernakulam
+
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       try {
-        const data = await fetchWithAuth("api/dashboard");
-        setData(data);
+        const start = `${startDate}T00:00:00`;
+        const end = `${endDate}T23:59:59`;
+        const res = await fetchWithAuth(
+          `api/dashboard?startDate=${start}&endDate=${end}&storeId=${storeId}`
+        );
+        setData(res);
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
       } finally {
@@ -46,7 +56,7 @@ export default function DashboardPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [startDate, endDate, storeId]);
 
   if (loading) {
     return (
@@ -66,28 +76,58 @@ export default function DashboardPage() {
     );
   }
 
-  const paymentMethodData = Object.entries(data.salesByPaymentMethod).map(
-    ([name, value]) => ({ name, value })
-  );
+  const paymentMethodData = Object.entries(data.salesByPaymentMethod).map(([name, value]) => ({
+    name,
+    value,
+  }));
 
-  const salesStatusData = Object.entries(data.salesByStatus).map(
-    ([status, value]) => ({
-      name: status === "0" ? "Completed" : "Cancelled", // updated
-      value,
-    })
-  );
+  const salesStatusData = Object.entries(data.salesByStatus).map(([status, value]) => ({
+    name: status === "0" ? "Completed" : "Cancelled",
+    value,
+  }));
 
-  const storeSalesData = Object.entries(data.storeSales).map(
-    ([store, revenue]) => ({
-      store: store === "1" ? "Ernakulam" : "Aluva", // updated
-      revenue,
-    })
-  );
+  const hourlySalesData = Object.entries(data.hourlySales).map(([time, revenue]) => ({
+    time: time.slice(11, 16), // Extract HH:mm
+    revenue,
+  }));
 
   return (
     <Layout pageTitle="Dashboard">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Dashboard Overview</h1>
+        {/* Filters */}
+        <div className="flex gap-4 mb-6">
+          <div>
+            <label className="block text-gray-600 mb-1">Start Date</label>
+            <input
+              type="date"
+              className="border p-2 rounded"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600 mb-1">End Date</label>
+            <input
+              type="date"
+              className="border p-2 rounded"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600 mb-1">Store</label>
+            <select
+              className="border p-2 rounded"
+              value={storeId}
+              onChange={(e) => setStoreId(e.target.value)}
+            >
+              <option value="0">Ernakulam</option>
+              <option value="1">Aluva</option>
+            </select>
+          </div>
+        </div>
 
         {/* Top Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -103,97 +143,50 @@ export default function DashboardPage() {
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Payment Method */}
+          {/* Hourly Sales */}
           <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">Sales by Payment Method</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={paymentMethodData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    dataKey="value"
-                    label
-                  >
-                    {paymentMethodData.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <h2 className="text-lg font-semibold mb-4 text-gray-700">Hourly Sales (Revenue)</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={hourlySalesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="revenue" stroke="#6366F1" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Sales Status */}
+          {/* Payment Chart */}
           <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">Sales by Status</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={salesStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    dataKey="value"
-                    label
-                  >
-                    {salesStatusData.map((_, index) => (
-                      <Cell
-                        key={`cell-status-${index}`}
-                        fill={STATUS_COLORS[index % STATUS_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <h2 className="text-lg font-semibold mb-4 text-gray-700">Payment Methods</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={paymentMethodData} cx="50%" cy="50%" label outerRadius={80} dataKey="value">
+                  {paymentMethodData.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Monthly Sales */}
+          {/* Status Chart */}
           <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">Monthly Sales</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.monthlySales}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="salesCount" fill="#6366F1" name="Sales Count" />
-                  <Bar dataKey="revenue" fill="#10B981" name="Revenue" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Store Sales */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-700">Store Sales</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={storeSalesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="store" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="#FACC15" name="Revenue" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <h2 className="text-lg font-semibold mb-4 text-gray-700">Order Status</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={salesStatusData} cx="50%" cy="50%" label outerRadius={80} dataKey="value">
+                  {salesStatusData.map((_, index) => (
+                    <Cell key={index} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
