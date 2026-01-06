@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/auth";
 import { Form, Input, Button, Card } from "antd";
@@ -8,16 +8,31 @@ import { Snackbar, Alert } from "@mui/material";
 import { motion } from "framer-motion";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 
-// Floating Particles Background
+// Floating Particles Background - only rendered on client to avoid hydration mismatch
 const FloatingParticles = () => {
-  const particles = Array.from({ length: 15 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: 6 + Math.random() * 12,
-    duration: 20 + Math.random() * 15,
-    delay: Math.random() * 5,
-  }));
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    duration: number;
+    delay: number;
+  }>>([]);
+
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 15 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: 6 + Math.random() * 12,
+        duration: 20 + Math.random() * 15,
+        delay: Math.random() * 5,
+      }))
+    );
+  }, []);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -31,6 +46,7 @@ const FloatingParticles = () => {
             width: particle.size,
             height: particle.size,
           }}
+          initial={{ opacity: 0 }}
           animate={{
             y: [0, -30, 0],
             opacity: [0.3, 0.6, 0.3],
