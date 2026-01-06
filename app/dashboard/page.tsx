@@ -64,7 +64,13 @@ const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; p
 };
 
 // Custom tooltip for charts
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white px-4 py-3 shadow-lg rounded-xl border border-gray-100">
@@ -182,7 +188,7 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-light text-gray-800">
               Welcome to <span className="font-semibold">Bean Barrel</span>
             </h1>
-            <p className="text-gray-500 mt-1">Here's what's happening today</p>
+            <p className="text-gray-500 mt-1">Here&apos;s what&apos;s happening today</p>
           </motion.div>
 
           {/* Filters */}
