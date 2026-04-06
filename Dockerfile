@@ -1,5 +1,5 @@
 # ---------- STAGE 1: Build ----------
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Accept runtime API URL
 ARG NEXT_PUBLIC_API_URL
